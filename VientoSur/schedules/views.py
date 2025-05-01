@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 from .models import RecurringSchedule
 from .serializers import RecurringScheduleSerializer
 from . import services
+from drf_spectacular.utils import extend_schema, OpenApiResponse
 
 
 class RecurringScheduleListCreateView(generics.ListCreateAPIView):
@@ -34,6 +35,11 @@ class RecurringScheduleRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyA
     serializer_class = RecurringScheduleSerializer
 
 class RecurringScheduleDeleteAllView(APIView):
+    @extend_schema(
+        responses={
+            204: OpenApiResponse(description="No content")
+        }
+    )
     def delete(self, request, *args, **kwargs):
         services.delete_all_recurring_schedules()
         return Response(status=status.HTTP_204_NO_CONTENT)

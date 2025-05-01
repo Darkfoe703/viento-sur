@@ -33,6 +33,24 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 
+REST_FRAMEWORK = {
+    # ... otras configuraciones de DRF
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    # ...
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Viento Sur API",
+    "DESCRIPTION": "API para la gestión de pacientes, horarios y citas.",
+    "VERSION": "1.0.0",
+    "SWAGGER_UI_SETTINGS": {
+        "customCssUrl": "/static/swagger-ui/swagger-dark.css",
+        # Otras configuraciones de Swagger UI
+    },
+    # OTHER SETTINGS
+}
+
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -42,6 +60,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',  # Django REST framework for building APIs
+    'drf_spectacular',  # For OpenAPI(Swagger) schema generation
     'patients',  # App for managing patients
     'schedules',  # App for managing schedules
     'appointments',  # App for managing appointments

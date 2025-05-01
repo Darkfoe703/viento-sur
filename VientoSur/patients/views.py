@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 from .models import Patient
 from .serializers import PatientSerializer
 from . import services
+from drf_spectacular.utils import extend_schema, OpenApiResponse
 
 
 class PatientListCreateView(generics.ListCreateAPIView):
@@ -30,6 +31,12 @@ class PatientRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = PatientSerializer
 
 class PatientDeleteAllView(APIView):
+    @extend_schema(
+        responses={
+            204: OpenApiResponse(description="No content")
+    }
+    )
+        
     def delete(self, request, *args, **kwargs):
         services.delete_all_patients()
         return Response(status=status.HTTP_204_NO_CONTENT)

@@ -4,6 +4,7 @@ from django.shortcuts import render
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from drf_spectacular.utils import extend_schema, OpenApiResponse
 from .models import Appointment
 from .serializers import AppointmentSerializer
 from . import services
@@ -42,6 +43,12 @@ class AppointmentRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView
 
 
 class AppointmentDeleteAllView(APIView):
+
+    @extend_schema(
+            responses={
+                204: OpenApiResponse(description="No content")
+                }
+            )
     def delete(self, request, *args, **kwargs):
         services.delete_all_appointments()
         return Response(status=status.HTTP_204_NO_CONTENT)
