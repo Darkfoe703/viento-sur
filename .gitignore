@@ -180,3 +180,4 @@ pyvenv.cfg
 *.tar.gz
 .env.dev
 .env.prod
+photo*

@@ -24,19 +24,19 @@ def create_schedule(day_of_week, start_time, end_time):
     return schedule
 
 # GET - Read
-def get_all_schedules():
+def get_all_recurring_schedules():
     """ Get all schedules. """
     return RecurringSchedule.objects.all()
 
-def get_schedule_by_availability(is_available=True):
+def get_recurring_schedules_by_availability(is_available=True):
     """ Get schedule by availability. """
     return RecurringSchedule.objects.filter(is_available=is_available)
 
-def get_schedule_by_day(day_of_week):
+def get_recurring_schedules_by_day(day_of_week):
     """ Get schedule by day. """
     return RecurringSchedule.objects.filter(day_of_week=day_of_week)
 
-def get_schedule_by_time_of_day(morning=True):
+def get_recurring_schedules_by_time_of_day(morning=True):
     """ Get schedule by time of day. """
     if morning:
         # Before 13:00 
@@ -45,7 +45,7 @@ def get_schedule_by_time_of_day(morning=True):
         # After 13:00
         return RecurringSchedule.objects.filter(start_time__gte=time(13, 0))
     
-def get_schedule_by_time_range(start_time=None, end_time=None):
+def get_recurring_schedules_by_time_range(start_time=None, end_time=None):
     """ Get schedule by time range. """
     queryset = RecurringSchedule.objects.all()
     if start_time is not None:
@@ -68,3 +68,7 @@ def delete_schedule(day_of_week, start_time):
     schedule.delete()
     return schedule
 
+def delete_all_recurring_schedules():
+    """Delete all recurring schedules."""
+    RecurringSchedule.objects.all().delete()
+    return True

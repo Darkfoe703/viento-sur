@@ -34,11 +34,11 @@ def get_patient_by_id(patient_id):
         return Patient.objects.get(pk=patient_id)
     except Patient.DoesNotExist:
         return None
-    
+
 def get_patient_by_name(name):
     """Get a patient by string in name (case-insensitive)."""
     return Patient.objects.filter(name__icontains=name)
-    
+
 def get_patient_by_last_name(last_name):
     """Get a patient by string in last name."""
     return Patient.objects.filter(last_name__icontains=last_name)
@@ -73,3 +73,9 @@ def delete_patient(patient_id):
         return True # Patient deleted successfully
     except Patient.DoesNotExist:
         return False
+
+
+def delete_all_patients():
+    """Delete all patients."""
+    Patient.objects.all().delete()
+    return True
