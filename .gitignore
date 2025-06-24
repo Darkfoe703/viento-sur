@@ -181,3 +181,4 @@ pyvenv.cfg
 .env.dev
 .env.prod
 photo*
+migrations*
