@@ -15,7 +15,8 @@ class RecurringSchedule(models.Model):
     start_time = models.TimeField()
     end_time = models.TimeField()
     is_available = models.BooleanField(default=True)  # Añadimos este campo
-
+    is_reserved = models.BooleanField(default=False)  # Para turnos regulares
+# Para señalar los turnos que quedaran etablecidos para pacientes regulares
     def __str__(self):
         day_name = self.get_day_of_week_display()
         return f"{day_name} de {self.start_time} a {self.end_time} ({'Disponible' if self.is_available else 'No Disponible'})"

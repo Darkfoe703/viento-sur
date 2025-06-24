@@ -30,7 +30,8 @@ SECRET_KEY = 'django-insecure-&^883r(5zy(=3422j=0hne4=6mmhzfmk4lb-3b_jhsgou-s_($
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+#TODO: Quitar en producción
+ALLOWED_HOSTS = ['*']
 
 
 REST_FRAMEWORK = {
@@ -54,27 +55,34 @@ SPECTACULAR_SETTINGS = {
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'rest_framework',  # Django REST framework for building APIs
-    'drf_spectacular',  # For OpenAPI(Swagger) schema generation
-    'patients',  # App for managing patients
-    'schedules',  # App for managing schedules
-    'appointments',  # App for managing appointments
+    "corsheaders",
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "rest_framework",  # Django REST framework for building APIs
+    "drf_spectacular",  # For OpenAPI(Swagger) schema generation
+    "patients",  # App for managing patients
+    "schedules",  # App for managing schedules
+    "appointments",  # App for managing appointments
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+]
+
+CORS_ALLOWED_ORIGINS = [
+    #TODO: Quitar en producción
+    "http://localhost:8080",  # Allow all origins for development; restrict in production
 ]
 
 ROOT_URLCONF = 'VientoSur.urls'
