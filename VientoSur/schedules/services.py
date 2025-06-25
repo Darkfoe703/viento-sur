@@ -1,52 +1,56 @@
 from .models import RecurringSchedule
 from datetime import time
+from django.db import IntegrityError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 
-# CRUD - Create, Read, Update, Delete
-# POST - Create
-def create_schedule(day_of_week, start_time, end_time):
-    """Create a new schedule.
-    
-    Keyword arguments:
-    Schedule information.
-    start_time -- Start time of the schedule
-    end_time -- End time of the schedule
-    day_of_week -- Day of the week (0-6)
-    is_available -- Is the schedule available (default: True)
-    Return: schedule -- Schedule object
+
+# CREATE
+def create_schedule(
+    day_of_week, start_time, end_time, is_available=True, is_reserved=False
+):
     """
-    
-    schedule = RecurringSchedule.objects.create(
-        day_of_week=day_of_week,
-        start_time=start_time,
-        end_time=end_time,
-        is_available=True,
-    )
-    return schedule
+    Create a new schedule.
 
-# GET - Read
+    Raises:
+        ValidationError: si ya existe un horario con el mismo día y hora de inicio,
+        o si la hora de inicio es mayor o igual a la de fin.
+    """
+    if start_time >= end_time:
+        raise ValidationError("La hora de inicio debe ser anterior a la hora de fin.")
+
+    try:
+        schedule = RecurringSchedule.objects.create(
+            day_of_week=day_of_week,
+            start_time=start_time,
+            end_time=end_time,
+            is_available=is_available,
+            is_reserved=is_reserved,
+        )
+        return schedule
+    except IntegrityError:
+        raise ValidationError("Ya existe un horario con ese día y hora de inicio.")
+
+
+# READ
 def get_all_recurring_schedules():
-    """ Get all schedules. """
     return RecurringSchedule.objects.all()
 
+
 def get_recurring_schedules_by_availability(is_available=True):
-    """ Get schedule by availability. """
     return RecurringSchedule.objects.filter(is_available=is_available)
 
+
 def get_recurring_schedules_by_day(day_of_week):
-    """ Get schedule by day. """
     return RecurringSchedule.objects.filter(day_of_week=day_of_week)
 
+
 def get_recurring_schedules_by_time_of_day(morning=True):
-    """ Get schedule by time of day. """
     if morning:
-        # Before 13:00 
         return RecurringSchedule.objects.filter(start_time__lt=time(13, 0))
-    else:
-        # After 13:00
-        return RecurringSchedule.objects.filter(start_time__gte=time(13, 0))
-    
+    return RecurringSchedule.objects.filter(start_time__gte=time(13, 0))
+
+
 def get_recurring_schedules_by_time_range(start_time=None, end_time=None):
-    """ Get schedule by time range. """
     queryset = RecurringSchedule.objects.all()
     if start_time is not None:
         queryset = queryset.filter(start_time__gte=time(start_time, 0))
@@ -54,21 +58,56 @@ def get_recurring_schedules_by_time_range(start_time=None, end_time=None):
         queryset = queryset.filter(end_time__lte=time(end_time, 0))
     return queryset
 
-# PUT - Update
-# TODO: Analizar cómo actualizar un schedule
 
-# DELETE - Delete
-def delete_schedule(day_of_week, start_time):
-    """Delete a schedule by day of week and start time."""
+# UPDATE
+def update_schedule(
+    day_of_week, start_time, end_time=None, is_available=None, is_reserved=None
+):
+    """
+    Update a schedule identified by day_of_week and start_time.
 
-    schedule = RecurringSchedule.objects.get(
-        day_of_week=day_of_week,
-        start_time=start_time
-    )
-    schedule.delete()
+    Raises:
+        ValidationError: si no se encuentra el horario o si los datos son inválidos.
+    """
+    try:
+        schedule = RecurringSchedule.objects.get(
+            day_of_week=day_of_week, start_time=start_time
+        )
+    except RecurringSchedule.DoesNotExist:
+        raise ValidationError("El horario especificado no existe.")
+
+    if end_time is not None and schedule.start_time >= end_time:
+        raise ValidationError("La nueva hora de fin debe ser posterior a la de inicio.")
+
+    if end_time is not None:
+        schedule.end_time = end_time
+    if is_available is not None:
+        schedule.is_available = is_available
+    if is_reserved is not None:
+        schedule.is_reserved = is_reserved
+
+    schedule.save()
     return schedule
 
+
+# DELETE
+def delete_schedule(day_of_week, start_time):
+    """
+    Delete a schedule by its day and start time.
+
+    Raises:
+        ValidationError: si el horario no existe.
+    """
+    try:
+        schedule = RecurringSchedule.objects.get(
+            day_of_week=day_of_week, start_time=start_time
+        )
+        schedule.delete()
+        return True
+    except RecurringSchedule.DoesNotExist:
+        raise ValidationError("No se encontró el horario para eliminar.")
+
+
 def delete_all_recurring_schedules():
-    """Delete all recurring schedules."""
     RecurringSchedule.objects.all().delete()
     return True
