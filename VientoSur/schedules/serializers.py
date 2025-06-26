@@ -1,9 +1,16 @@
 from rest_framework import serializers
 from .models import RecurringSchedule
 
+# FIXME: Diferenciar serializador de creación y actualización
+#       y diferenciar validaciones.
 
 class RecurringScheduleSerializer(serializers.ModelSerializer):
-    day_of_week = serializers.ChoiceField(choices=RecurringSchedule.DAY_OF_WEEK_CHOICES)
+    day_of_week = serializers.ChoiceField(choices=RecurringSchedule.DAY_OF_WEEK_CHOICES, required=False)
+
+    start_time = serializers.TimeField(required=False)
+    end_time = serializers.TimeField(required=False)
+    is_available = serializers.BooleanField(required=False)
+    is_reserved = serializers.BooleanField(required=False)
 
     class Meta:
         model = RecurringSchedule
@@ -20,26 +27,28 @@ class RecurringScheduleSerializer(serializers.ModelSerializer):
 
         day = data.get("day_of_week")
 
-        # Para creación: verificar duplicado
-        if self.instance is None:
-            exists = RecurringSchedule.objects.filter(
-                day_of_week=day, start_time=start
-            ).exists()
-            if exists:
-                raise serializers.ValidationError(
-                    "Ya existe un horario con ese día y hora de inicio."
+        # Solo validar unicidad si tenemos ambos campos
+        if day is not None and start is not None:
+            if self.instance is None:
+                # Crear nuevo
+                exists = RecurringSchedule.objects.filter(
+                    day_of_week=day, start_time=start
+                ).exists()
+                if exists:
+                    raise serializers.ValidationError(
+                        "Ya existe un horario con ese día y hora de inicio."
+                    )
+            else:
+                # Actualización parcial o completa
+                exists = (
+                    RecurringSchedule.objects.exclude(id=self.instance.id)
+                    .filter(day_of_week=day, start_time=start)
+                    .exists()
                 )
-        else:
-            # Para update: verificar que no duplique otro horario
-            exists = (
-                RecurringSchedule.objects.exclude(id=self.instance.id)
-                .filter(day_of_week=day, start_time=start)
-                .exists()
-            )
-            if exists:
-                raise serializers.ValidationError(
-                    "Otro horario ya existe con ese día y hora de inicio."
-                )
+                if exists:
+                    raise serializers.ValidationError(
+                        "Otro horario ya existe con ese día y hora de inicio."
+                    )
 
         return data
 

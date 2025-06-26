@@ -30,14 +30,17 @@ SECRET_KEY = 'django-insecure-&^883r(5zy(=3422j=0hne4=6mmhzfmk4lb-3b_jhsgou-s_($
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-#TODO: Quitar en producción
+# TODO: Quitar en producción
 ALLOWED_HOSTS = ['*']
 
 
 REST_FRAMEWORK = {
-    # ... otras configuraciones de DRF
+    # configuraciones de DRF
+    "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
+    # Clase de paginación personalizada
+    "DEFAULT_PAGINATION_CLASS": "schedules.pagination.CustomPageNumberPagination",
+    "PAGE_SIZE": 5,  # Resultados por página
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-    # ...
 }
 
 SPECTACULAR_SETTINGS = {

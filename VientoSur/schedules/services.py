@@ -59,26 +59,49 @@ def get_recurring_schedules_by_time_range(start_time=None, end_time=None):
     return queryset
 
 
+
 # UPDATE
 def update_schedule(
-    day_of_week, start_time, end_time=None, is_available=None, is_reserved=None
+    schedule_id,
+    day_of_week=None,
+    start_time=None,
+    end_time=None,
+    is_available=None,
+    is_reserved=None,
 ):
     """
-    Update a schedule identified by day_of_week and start_time.
+    Update a schedule by its ID.
 
     Raises:
         ValidationError: si no se encuentra el horario o si los datos son inválidos.
     """
     try:
-        schedule = RecurringSchedule.objects.get(
-            day_of_week=day_of_week, start_time=start_time
-        )
+        schedule = RecurringSchedule.objects.get(id=schedule_id)
     except RecurringSchedule.DoesNotExist:
         raise ValidationError("El horario especificado no existe.")
 
-    if end_time is not None and schedule.start_time >= end_time:
-        raise ValidationError("La nueva hora de fin debe ser posterior a la de inicio.")
+    # Validación de horario
+    if start_time is not None and end_time is not None:
+        if start_time >= end_time:
+            raise ValidationError("La hora de fin debe ser posterior a la de inicio.")
 
+    # Simular los nuevos valores para verificar unicidad
+    new_day = day_of_week if day_of_week is not None else schedule.day_of_week
+    new_start = start_time if start_time is not None else schedule.start_time
+
+    conflict = (
+        RecurringSchedule.objects.exclude(id=schedule.id)
+        .filter(day_of_week=new_day, start_time=new_start)
+        .exists()
+    )
+    if conflict:
+        raise ValidationError("Ya existe otro horario con ese día y hora de inicio.")
+
+    # Actualización condicional
+    if day_of_week is not None:
+        schedule.day_of_week = day_of_week
+    if start_time is not None:
+        schedule.start_time = start_time
     if end_time is not None:
         schedule.end_time = end_time
     if is_available is not None:

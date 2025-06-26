@@ -1,28 +1,33 @@
+# schedules/views.py
+# TODO: Ver FIXME de serializer.py Diferenciación para POST y PUT
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework.exceptions import ValidationError as DRFValidationError
+from django.core.exceptions import ValidationError as DjangoValidationError
+
 from .models import RecurringSchedule
 from .serializers import RecurringScheduleSerializer
 from . import services
+from .filters import RecurringScheduleFilter  # 👈 NUEVO
 from drf_spectacular.utils import extend_schema, OpenApiResponse
+
+from django_filters.rest_framework import DjangoFilterBackend  # 👈 NUEVO
 
 
 class RecurringScheduleListCreateView(generics.ListCreateAPIView):
     serializer_class = RecurringScheduleSerializer
+    queryset = RecurringSchedule.objects.all()
+
+    filter_backends = [DjangoFilterBackend]  # 👈 Activa filtros
+    filterset_class = RecurringScheduleFilter  # 👈 Usa nuestra clase de filtros
 
     def get_queryset(self):
-        day = self.request.query_params.get("day")
-        time_of_day = self.request.query_params.get("time_of_day")
-
-        if day:
-            return services.get_recurring_schedules_by_day(day)
-        elif time_of_day == "morning":
-            return services.get_recurring_schedules_by_time_of_day(morning=True)
-        elif time_of_day == "afternoon":
-            return services.get_recurring_schedules_by_time_of_day(morning=False)
-        return services.get_all_recurring_schedules()
+        """
+        Si no se pasan filtros personalizados, devolvemos todos los horarios,
+        para que se paginen los primeros 20 por defecto.
+        """
+        return RecurringSchedule.objects.all()
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -41,33 +46,14 @@ class RecurringScheduleRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyA
     serializer_class = RecurringScheduleSerializer
 
     def update(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=False)
-        if serializer.is_valid():
-            try:
-                updated_schedule = services.update_schedule(
-                    day_of_week=serializer.validated_data["day_of_week"],
-                    start_time=serializer.validated_data["start_time"],
-                    end_time=serializer.validated_data.get("end_time"),
-                    is_available=serializer.validated_data.get("is_available"),
-                    is_reserved=serializer.validated_data.get("is_reserved"),
-                )
-                return Response(
-                    self.get_serializer(updated_schedule).data,
-                    status=status.HTTP_200_OK,
-                )
-            except DjangoValidationError as e:
-                raise DRFValidationError({"error": str(e)})
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        schedule_id = self.get_object().id
+        serializer = self.get_serializer(data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
 
-    def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
         try:
-            services.delete_schedule(
-                day_of_week=instance.day_of_week, start_time=instance.start_time
-            )
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        except DjangoValidationError as e:
+            updated_schedule = services.update_schedule(schedule_id, **serializer.validated_data)
+            return Response(self.get_serializer(updated_schedule).data, status=status.HTTP_200_OK)
+        except ValidationError as e:
             raise DRFValidationError({"error": str(e)})
 
 
